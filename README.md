@@ -6,6 +6,17 @@ It can help you choose which tag/tags to use in "公开招募"
 
 <img src="https://i.loli.net/2019/05/11/5cd67db6f1250.jpg" alt="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" title="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" width = "250"/>
 
+## File Structure
+```
+├─akaisora-bot
+   ├─akaisora
+   │  └─plugins
+   │      │  recom_tags.py
+   │      └─ chardata.html
+   │  bot.py
+   └─ config.py
+```
+
 ## Install Requirement
 ```
 Python: Python>=3.6.1
