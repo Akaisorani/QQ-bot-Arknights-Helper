@@ -140,6 +140,7 @@ class Tags_recom(object):
         '近战', '远程',
         '资深干员','高级资深干员', 
         '女', '男',
+        '女性', '男性',
         '狙击干员', '术师干员', '特种干员', '重装干员', '辅助干员', '先锋干员', '医疗干员', '近卫干员',
         '女性干员', '男性干员'
         }  
@@ -261,8 +262,11 @@ class Tags_recom(object):
         for tag in tags:
             if tag=="高级资深干员" or tag=="资深干员":
                 restags.append(tag)
-            if tag=="近战" or tag=="远程":
+            elif tag=="近战" or tag=="远程":
                 restags.append(tag+"位")
+            elif tag=="男性" or tag=="女性":
+                tag=tag.replace("性","")
+                restags.append(tag)              
             elif "性干员" in tag:
                 tag=tag.replace("性干员","")
                 restags.append(tag)
