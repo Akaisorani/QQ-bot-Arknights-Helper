@@ -1,5 +1,10 @@
 from nonebot import on_command, CommandSession
 from nonebot import on_natural_language, NLPSession, IntentCommand
+import requests
+from html import unescape
+from lxml import html
+
+path_prefix="./akaisora/plugins/"
 
 # some comments below is from the demo code of nonebot
 
@@ -17,6 +22,48 @@ async def tagrc(session: CommandSession):
     if tagrc_report is None: return 
     # 向用户发送天气预报
     await session.send(tagrc_report)
+    
+@on_command('hello', aliases=(), only_to_me=True)
+async def hello(session: CommandSession):
+
+    info_msg="""明日方舟 公开招募助手机器人
+用法:
+1.输入词条列表，空格隔开
+    如: 近卫 男
+2.tell 干员名称
+    如: tell 艾雅法拉
+Github链接: https://github.com/Akaisorani/QQ-bot-Arknights-Helper"""
+
+    await session.send(info_msg)
+    
+@on_command('update_data', aliases=(), only_to_me=True)
+async def update_data(session: CommandSession):
+
+    r=requests.get("http://wiki.joyme.com/arknights/干员数据表")
+    tree=html.fromstring(r.text)
+
+    people_list=tree.xpath("//tr[@data-param1]")
+    res="".join([unescape(html.tostring(peo).decode('utf-8')) for peo in people_list])
+    
+    with open(path_prefix+"chardata.html","w",encoding='utf-8') as fp:
+        fp.write(res)
+    
+    tags_recom.char_data.extract_all_char(text_file=path_prefix+"chardata.html")
+    
+    
+    info_msg="update done"
+
+    await session.send(info_msg)
+    
+@on_command('tell', aliases=(), only_to_me=False)
+async def tell(session: CommandSession):
+    name=session.state['name'] if 'name' in session.state else None
+    if not name :return
+    # 获取城市的天气预报
+    tell_report = await get_peo_info(name=name)
+    if tell_report is None: return 
+    # 向用户发送天气预报
+    await session.send(tell_report)
 
 # weather.args_parser 装饰器将函数声明为 weather 命令的参数解析器
 # 命令解析器用于将用户输入的参数解析成命令真正需要的数据
@@ -57,6 +104,20 @@ async def _(session: NLPSession):
 
     # 返回意图命令，前两个参数必填，分别表示置信度和意图命令名
     return IntentCommand(90.0, 'tagrc', current_arg=msg or '')
+    
+@tell.args_parser
+async def _(session: CommandSession):
+    # 去掉消息首尾的空白符
+    stripped_arg = session.current_arg_text.strip()
+    
+    print("tell stripped_arg", stripped_arg)
+    if session.is_first_run:
+        # 该命令第一次运行（第一次进入命令会话）
+        if stripped_arg:
+            # 第一次运行参数不为空，意味着用户直接将城市名跟在命令名后面，作为参数传入
+            # 例如用户可能发送了：天气 南京
+            session.state['name'] = stripped_arg
+        return
 
 
 async def get_recomm_tags(tags: str, images: list) -> str:
@@ -66,10 +127,14 @@ async def get_recomm_tags(tags: str, images: list) -> str:
     report=tags_recom.recom(tags_list, images)
     
     return report
+    
+async def get_peo_info(name: str) -> str:
+    # 这里简单返回一个字符串
+    # 实际应用中，这里应该调用返回真实数据的天气 API，并拼接成天气预报内容
+    report=tags_recom.peo_info(name)
+    
+    return report
 
-
-from html import unescape
-from lxml import html
 
 class Character(object):
     def __init__(self):
@@ -131,8 +196,7 @@ class Character(object):
 class Tags_recom(object):
     def __init__(self):
         self.char_data=Character()
-        self.char_data.extract_all_char(text_file="./akaisora/plugins/chardata.html")
-        # self.char_data.extract_all_char(text_file="chardata.html")
+        self.char_data.extract_all_char(text_file=path_prefix+"chardata.html")
         self.all_tags={
         '狙击', '术师', '特种', '重装', '辅助', '先锋', '医疗', '近卫',
         '减速', '输出', '生存', '群攻', '爆发', '召唤', '快速复活','费用回复',
@@ -327,10 +391,21 @@ class Tags_recom(object):
             line_lis.append(lef+rig)
         res="\n\n".join(line_lis)
         return res
+        
+    def peo_info(self, name=None):
+        if not name or name not in self.char_data.char_data:
+            return None
+        res=["{0}: {1}".format("name",name)]
+        peo_dict=self.char_data.char_data[name]
+        for tp, cont in peo_dict.items():
+            res.append("{0}: {1}".format(tp,cont))
+        return "\n".join(res)
     
     def get_tags_from_image(self, filename):
         pass
-
+        
+        
+# path_prefix=""
 tags_recom=Tags_recom()
 
 if __name__=="__main__":
@@ -342,6 +417,9 @@ if __name__=="__main__":
     # res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
     res=tags_recom.recom(["近卫", "男", "支援"])
     print(res)
+    
+    res2=tags_recom.peo_info("艾雅法拉")
+    print(res2)
     
     # st=set()
     # for name,dic in tags_recom.char_data.char_data.items():
