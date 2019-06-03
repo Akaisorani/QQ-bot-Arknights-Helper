@@ -132,6 +132,7 @@ class Tags_recom(object):
     def __init__(self):
         self.char_data=Character()
         self.char_data.extract_all_char(text_file="./akaisora/plugins/chardata.html")
+        # self.char_data.extract_all_char(text_file="chardata.html")
         self.all_tags={
         '狙击', '术师', '特种', '重装', '辅助', '先锋', '医疗', '近卫',
         '减速', '输出', '生存', '群攻', '爆发', '召唤', '快速复活','费用回复',
@@ -191,45 +192,51 @@ class Tags_recom(object):
         # for x in cob_lis:
             # print(self.avg_rank(x))
             
-        # build reverse index
-        char_dic=dict()
-        for i in range(len(cob_lis)):
-            for name in cob_lis[i][1]:
-                if name not in char_dic:
-                    char_dic[name]=[i]
-                else:
-                    char_dic[name].append(i)
-        # print("")
-        # print(char_dic)
+        # # build reverse index
+        # char_dic=dict()
+        # for i in range(len(cob_lis)):
+            # for name in cob_lis[i][1]:
+                # if name not in char_dic:
+                    # char_dic[name]=[i]
+                # else:
+                    # char_dic[name].append(i)
+        # # print("")
+        # # print(char_dic)
         
-        # remove duplicate
-        min_size_id=dict()
-        for name, lis in char_dic.items():
-            if len(lis)>1:
-                min_size_id[name]=lis[0]
-                for id in lis:
-                    if len(cob_lis[id][1])<len(cob_lis[min_size_id[name]][1]):
-                        min_size_id[name]=id
+        # # remove duplicate
+        # min_size_id=dict()
+        # for name, lis in char_dic.items():
+            # if len(lis)>1:
+                # min_size_id[name]=lis[0]
+                # for id in lis:
+                    # if len(cob_lis[id][1])<len(cob_lis[min_size_id[name]][1]):
+                        # min_size_id[name]=id
                         
-        for name, lis in char_dic.items():
-            if len(lis)>1:                        
-                for id in lis:
-                    if id!=min_size_id[name]:
-                        cob_lis[id][1].remove(name)
-        cob_lis=[x for x in cob_lis if x[1]!=[]]
-        # print("")
-        # for x in cob_lis:
-            # print(x)
+        # for name, lis in char_dic.items():
+            # if len(lis)>1:                        
+                # for id in lis:
+                    # if id!=min_size_id[name]:
+                        # cob_lis[id][1].remove(name)
+        # cob_lis=[x for x in cob_lis if x[1]!=[]]
+        # # print("")
+        # # for x in cob_lis:
+            # # print(x)
         
         #merge less rank 3
         for tags_lis, lis in cob_lis:
             cnt=0
+            sp_lis=[]
             while len(lis)>0 and self.char_data.char_data[lis[-1]]["rank"]<="3":
-                lis.pop()
-                cnt+=1
-            if cnt>0:
-                if len(lis)>0:
-                    lis.append("...{0}".format(cnt))
+                res=lis.pop()
+                if res=="Castle-3":
+                    sp_lis.append(res)
+                else:
+                    cnt+=1
+            
+            if len(sp_lis)>0:
+                lis.extend(sp_lis)
+            if cnt>0 and len(lis)>0:
+                lis.append("...{0}".format(cnt))
         cob_lis=[x for x in cob_lis if x[1]!=[]]
         
         return cob_lis
@@ -242,8 +249,8 @@ class Tags_recom(object):
     def is_special_rm(self, cob_i):
         if set(cob_i[0])==set(["女"]):
             return True
-        if set(cob_i[0])==set(["男"]):
-            return True
+        # if set(cob_i[0])==set(["男"]):
+            # return True
         return False
         
     def avg_rank(self, cob_i):
@@ -306,7 +313,7 @@ class Tags_recom(object):
             return None
         cob_lis=self.recom_tags(tags)
         if not cob_lis:
-            return "没有"
+            return "没有或者太多"
         line_lis=[]
         for tags_lis, lis in cob_lis:
             new_lis=[]
@@ -332,7 +339,8 @@ if __name__=="__main__":
     char_data.extract_all_char(text_file=filename)
     print(char_data.char_data["艾雅法拉"])
     
-    res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
+    # res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
+    res=tags_recom.recom(["近卫", "男", "支援"])
     print(res)
     
     # st=set()
