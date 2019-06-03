@@ -6,6 +6,40 @@ It can help you choose which tag/tags to use in "公开招募"
 
 <img src="https://i.loli.net/2019/05/11/5cd67db6f1250.jpg" alt="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" title="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" width = "250"/>
 
+## Usage
+1. tag list split by space
+>e.g. 近卫 男
+
+>**Result**\
+>【近卫】:
+>幽灵鲨★5, 因陀罗★5, 杜宾★4, 艾丝黛尔★4, 慕斯★4, 霜叶★4, 缠丸★4, Castle-3★1, ★1~3...1
+>
+>【男】:
+>角峰★4, Castle-3★1, ★1~3...6
+>
+>【近卫+男】:
+>Castle-3★1
+
+2. tell character name
+>e.g. tell 艾雅法拉
+
+>**Result**\
+>name: 艾雅法拉\
+>job: 术师\
+>rank: 6\
+>sex: 女\
+>affiliation: 卡普里尼\
+>tags: ['远程位', '输出', '削弱', '女', '术师', '高级资深干员']\
+>obtain_method: ['干员寻访']
+
+3. @this_bot hello
+
+>tell you some info about this bot
+
+4. @this_bot update_data
+
+>update character data from wiki
+
 ## File Structure
 ```
 ├─akaisora-bot
