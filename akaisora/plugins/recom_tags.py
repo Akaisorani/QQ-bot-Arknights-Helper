@@ -3,6 +3,7 @@ from nonebot import on_natural_language, NLPSession, IntentCommand
 import requests
 from html import unescape
 from lxml import html
+import os
 
 path_prefix="./akaisora/plugins/"
 
@@ -39,15 +40,7 @@ Github链接: https://github.com/Akaisorani/QQ-bot-Arknights-Helper"""
 @on_command('update_data', aliases=(), only_to_me=True)
 async def update_data(session: CommandSession):
 
-    r=requests.get("http://wiki.joyme.com/arknights/干员数据表")
-    tree=html.fromstring(r.text)
-
-    people_list=tree.xpath("//tr[@data-param1]")
-    res="".join([unescape(html.tostring(peo).decode('utf-8')) for peo in people_list])
-    
-    with open(path_prefix+"chardata.html","w",encoding='utf-8') as fp:
-        fp.write(res)
-    
+    tags_recom.char_data.fetch_data()
     tags_recom.char_data.extract_all_char(text_file=path_prefix+"chardata.html")
     
     
@@ -131,7 +124,7 @@ async def get_recomm_tags(tags: str, images: list) -> str:
 async def get_peo_info(name: str) -> str:
     # 这里简单返回一个字符串
     # 实际应用中，这里应该调用返回真实数据的天气 API，并拼接成天气预报内容
-    report=tags_recom.peo_info(name)
+    report=tags_recom.char_data.get_peo_info(name)
     
     return report
 
@@ -139,14 +132,27 @@ async def get_peo_info(name: str) -> str:
 class Character(object):
     def __init__(self):
         self.char_data=dict()
+        self.head_data=[]
+        self.head_key_map={
+            "职业":"job",
+            "星级":"rank",
+            "性别":"sex",
+            "阵营":"affiliation",
+            "标签":"tags",
+            "获取途径":"obtain_method"
+        }
         
-    def extract_all_char(self, text_string=None, text_file=None):
+    def extract_all_char(self, text_string=None, text_file=None, head_file=None):
+        if text_file is None:text_file=path_prefix+"chardata.html"  
+        if head_file is None:head_file=path_prefix+"data_head.html" 
+        if not os.path.exists(text_file) or not os.path.exists(head_file):
+            self.fetch_data()
         if text_string is None:
-            if text_file is not None:
-                with open(text_file,encoding='UTF-8') as fp:
-                    text_string=fp.read()
-            else:
-                return
+            with open(text_file,encoding='UTF-8') as fp:
+                text_string=fp.read()
+        with open(head_file,encoding='UTF-8') as fp:
+            head_string=fp.read()
+        self.head_data=head_string.split(',')
 
         tree=html.fromstring(text_string)
         char_res_lis=tree.xpath("//tr")
@@ -168,7 +174,13 @@ class Character(object):
             taglist=[x for x in taglist if x!=""]
             self.char_data[name]["tags"]=taglist
             self.char_data[name]["obtain_method"]=list(map(lambda x: x.strip(), char_tr.xpath("./@data-param6")[0].split(",")))
-    
+            
+            #deal head and data
+            td_lis=char_tr.xpath(".//td")
+            text_lis=["".join([xx.strip() for xx in x.xpath(".//text()")]) for x in td_lis]
+            all_lis=[x.strip() for x in text_lis]
+            self.char_data[name]["all"]=all_lis
+            
     def filter(self, tags):
         tags=tags[:]
         ranks=self.gen_ranks(tags)
@@ -192,6 +204,33 @@ class Character(object):
         if "高级资深干员" in tags:
             ranks=["6"]
         return ranks
+        
+    def get_peo_info(self, name=None):
+        if not name or name not in self.char_data:
+            return None
+        res=[]
+        for tp, cont in zip(self.head_data,self.char_data[name]['all']):
+            if tp:
+                if tp=="干员代号":tp="姓名"
+                res.append("{0}: {1}".format(tp,cont))
+        return "\n".join(res)
+        
+    def fetch_data(self):
+        r=requests.get("http://wiki.joyme.com/arknights/干员数据表")
+        tree=html.fromstring(r.text)
+        
+        # people data
+        people_list=tree.xpath("//tr[@data-param1]")
+        res="".join([unescape(html.tostring(peo).decode('utf-8')) for peo in people_list])
+        
+        with open(path_prefix+"chardata.html","w",encoding='utf-8') as fp:
+            fp.write(res)
+        
+        # table head data
+        tb_head=tree.xpath("//table[@id='CardSelectTr']//th/text()")
+        tb_head=[x.strip() for x in tb_head]
+        with open(path_prefix+"data_head.html","w",encoding='utf-8') as fp:
+            fp.write(",".join(tb_head))
                 
 class Tags_recom(object):
     def __init__(self):
@@ -391,15 +430,6 @@ class Tags_recom(object):
             line_lis.append(lef+rig)
         res="\n\n".join(line_lis)
         return res
-        
-    def peo_info(self, name=None):
-        if not name or name not in self.char_data.char_data:
-            return None
-        res=["{0}: {1}".format("name",name)]
-        peo_dict=self.char_data.char_data[name]
-        for tp, cont in peo_dict.items():
-            res.append("{0}: {1}".format(tp,cont))
-        return "\n".join(res)
     
     def get_tags_from_image(self, filename):
         pass
@@ -418,7 +448,7 @@ if __name__=="__main__":
     res=tags_recom.recom(["近卫", "男", "支援"])
     print(res)
     
-    res2=tags_recom.peo_info("艾雅法拉")
+    res2=tags_recom.char_data.get_peo_info("艾雅法拉")
     print(res2)
     
     # st=set()
