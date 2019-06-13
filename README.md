@@ -3,9 +3,11 @@ A qq bot based on nonebot and coolq
 
 ## Description
 It can help you choose which tag/tags to use in "公开招募"
-
-<img src="https://i.loli.net/2019/05/11/5cd67db6f1250.jpg" alt="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" title="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" width = "250"/>
-
+<table><tr>
+<td><img src="https://i.loli.net/2019/05/11/5cd67db6f1250.jpg" alt="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" title="Screenshot_20190511_154352_com.tencent.mobileqq.jpg" width = "250"/></td>
+<td><img src="https://s2.ax1x.com/2019/06/14/VhOIVx.jpg" alt="VhOIVx.jpg" border="0" width = "250"/></td>
+<td><img src="https://s2.ax1x.com/2019/06/14/VhXlz4.jpg" alt="VhXlz4.jpg" border="0" width = "250"/></td>
+</tr></table>
 ## Usage
 1. tag list split by space
 >e.g. 近卫 男
@@ -20,7 +22,9 @@ It can help you choose which tag/tags to use in "公开招募"
 >【近卫+男】:
 >Castle-3★1
 
-2. tell character name
+2. send a screenshot of tags in game, get result as above
+
+3. tell character name
 >e.g. tell 艾雅法拉
 
 >**Result**\
@@ -43,11 +47,11 @@ It can help you choose which tag/tags to use in "公开招募"
 >特性: 攻击造成法术伤害\
 >标签: 远程位、输出、削弱
 
-3. @this_bot hello
+4. @this_bot hello
 
 >tell you some info about this bot
 
-4. @this_bot update_data
+5. @this_bot update_data
 
 >update character data from wiki
 
