@@ -3,9 +3,16 @@ from nonebot import on_natural_language, NLPSession, IntentCommand
 import requests
 from html import unescape
 from lxml import html
-import os
+import os, sys
+
+o_path = os.getcwd()
+o_path=o_path+"/akaisora/plugins/"
+sys.path.append(o_path)
+
+from ocr_tool import Ocr_tool
 
 path_prefix="./akaisora/plugins/"
+# path_prefix=""
 
 # some comments below is from the demo code of nonebot
 
@@ -17,7 +24,7 @@ async def tagrc(session: CommandSession):
     # tags = session.get('tags', prompt='输入tag列表，空格隔开')
     tags=session.state['tags'] if 'tags' in session.state else None
     images=session.state['images'] if 'images' in session.state else None
-    if not tags :return
+    if not tags and not images:return
     # 获取城市的天气预报
     tagrc_report = await get_recomm_tags(tags=tags,images=images)
     if tagrc_report is None: return 
@@ -31,7 +38,9 @@ async def hello(session: CommandSession):
 用法:
 1.输入词条列表，空格隔开
     如: 近卫 男
-2.tell 干员名称
+2.发送招募词条截图
+    
+3.tell 干员名称
     如: tell 艾雅法拉
 Github链接: https://github.com/Akaisorani/QQ-bot-Arknights-Helper"""
 
@@ -116,7 +125,7 @@ async def _(session: CommandSession):
 async def get_recomm_tags(tags: str, images: list) -> str:
     # 这里简单返回一个字符串
     # 实际应用中，这里应该调用返回真实数据的天气 API，并拼接成天气预报内容
-    tags_list=tags.split()
+    tags_list=tags.split() if tags else []
     report=tags_recom.recom(tags_list, images)
     
     return report
@@ -248,6 +257,8 @@ class Tags_recom(object):
         '狙击干员', '术师干员', '特种干员', '重装干员', '辅助干员', '先锋干员', '医疗干员', '近卫干员',
         '女性干员', '男性干员'
         }  
+        
+        self.ocr_tool=Ocr_tool()
         
     def recom_tags(self, tags):
         tags=self.strip_tags(tags)
@@ -400,6 +411,7 @@ class Tags_recom(object):
             yield x
     
     def check_legal_tags(self, tags):
+        if not tags: return False
         for tag in tags:
             if tag not in self.all_tags:
                 return False
@@ -409,6 +421,7 @@ class Tags_recom(object):
         if not tags:
             if images:
                 tags=self.get_tags_from_image(images)
+                if not tags: return None
             else:
                 return None
         
@@ -431,11 +444,12 @@ class Tags_recom(object):
         res="\n\n".join(line_lis)
         return res
     
-    def get_tags_from_image(self, filename):
-        pass
+    def get_tags_from_image(self, images):
+        tags=self.ocr_tool.get_tags_from_url(images[0])
+        return tags
         
         
-# path_prefix=""
+
 tags_recom=Tags_recom()
 
 if __name__=="__main__":
@@ -445,7 +459,12 @@ if __name__=="__main__":
     print(char_data.char_data["艾雅法拉"])
     
     # res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
+    
     res=tags_recom.recom(["近卫", "男", "支援"])
+    print(res)
+    print("="*15)
+    url="https://c2cpicdw.qpic.cn/offpic_new/1224067801//39b40a48-b543-4082-986d-f29ee82645d3/0?vuin=2473990407&amp;amp;term=2"
+    res=tags_recom.recom(images=[url])
     print(res)
     
     res2=tags_recom.char_data.get_peo_info("艾雅法拉")
