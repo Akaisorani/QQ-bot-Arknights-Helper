@@ -33,21 +33,27 @@ class Ocr_tool(object):
         
     def image2byte(self, im):
         out_buffer=BytesIO()
-        im.save(out_buffer, format='JPEG')
+        im.save(out_buffer, format='PNG')
         byte_data = out_buffer.getvalue()
         return byte_data
         
-    def ocr(self, im):
-        byte_data=self.image2byte(im)
+    def ocr(self, image=None, url=None):
         options = {}
         options["language_type"] = "CHN_ENG"
         options["probability"] = "true"
-        res=self.client.basicGeneral(byte_data, options)
+        if image is not None:
+            byte_data=self.image2byte(image)
+            res=self.client.basicGeneral(byte_data, options)
+        elif url is not None:
+            res=self.client.basicGeneralUrl(url, options)
+        else:
+            return []
         
         word_lis=[]
-        for word_entry in res["words_result"]:
-            if word_entry["probability"]["average"]<self.p_thres:continue
-            word_lis.append(word_entry["words"])
+        if "words_result" in res:
+            for word_entry in res["words_result"]:
+                if word_entry["probability"]["average"]<self.p_thres:continue
+                word_lis.append(word_entry["words"])
             
         return word_lis
         
@@ -58,10 +64,17 @@ class Ocr_tool(object):
         return im
         
         
-    def get_tags_from_url(self, imgurl):
-        im=self.get_im_from_url(imgurl)
-        im=self.crop_image(im)
-        tag_lis=self.ocr(im)
+    def get_tags_from_url(self, imgurl, crop=False):
+        if crop:
+            im=self.get_im_from_url(imgurl)
+            if im.mode=='P':
+                print("MYDEBUG mode:P")
+                return []
+            im=self.crop_image(im)
+            tag_lis=self.ocr(image=im)
+        else:
+            tag_lis=self.ocr(url=imgurl)
+        
         return tag_lis
         
         
@@ -69,6 +82,8 @@ class Ocr_tool(object):
 if __name__=="__main__":
     ocr_t=Ocr_tool()
     url="https://c2cpicdw.qpic.cn/offpic_new/1224067801//39b40a48-b543-4082-986d-f29ee82645d3/0?vuin=2473990407&amp;amp;term=2"
+    url="https://gchat.qpic.cn/gchatpic_new/928486287/698793878-2394576410-EFE27EE550AA2B1E68923AD3A227A9B1/0?vuin=2473990407&amp;amp;term=2"
+    url="https://c2cpicdw.qpic.cn/offpic_new/391809494//857ddb74-7a0d-40ae-98db-068f8c733c86/0?vuin=2473990407&amp;amp;term=2"
     # im=ocr_t.read_image("tags.jpg")
     # im=ocr_t.crop_image(im)
     # word_lis=ocr_t.ocr(im)

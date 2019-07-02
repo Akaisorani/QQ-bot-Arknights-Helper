@@ -1,9 +1,15 @@
 from nonebot import on_command, CommandSession
 from nonebot import on_natural_language, NLPSession, IntentCommand
 import requests
+import urllib
 from html import unescape
 from lxml import html
 import os, sys
+
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+
+from xpinyin import Pinyin
 
 o_path = os.getcwd()
 o_path=o_path+"/akaisora/plugins/"
@@ -150,6 +156,8 @@ class Character(object):
             "标签":"tags",
             "获取途径":"obtain_method"
         }
+        self.fuzzymap=dict()
+        self.pinyin=Pinyin()
         
     def extract_all_char(self, text_string=None, text_file=None, head_file=None):
         if text_file is None:text_file=path_prefix+"chardata.html"  
@@ -190,6 +198,11 @@ class Character(object):
             all_lis=[x.strip() for x in text_lis]
             self.char_data[name]["all"]=all_lis
             
+        # fuzzy name+pinyin -> name
+        self.fuzzymap=dict()
+        for name in self.char_data.keys():
+            self.fuzzymap[name+" "+self.pinyin.get_pinyin(name,'')]=name
+            
     def filter(self, tags):
         tags=tags[:]
         ranks=self.gen_ranks(tags)
@@ -215,13 +228,21 @@ class Character(object):
         return ranks
         
     def get_peo_info(self, name=None):
-        if not name or name not in self.char_data:
-            return None
+        if not name: return None
+        if name not in self.char_data:
+            namepin=name+" "+self.pinyin.get_pinyin(name,'')
+            res=process.extractOne(namepin,self.fuzzymap.keys())
+            res=self.fuzzymap[res[0]]
+            return "你可能想查 {0}".format(res)
         res=[]
         for tp, cont in zip(self.head_data,self.char_data[name]['all']):
             if tp:
                 if tp=="干员代号":tp="姓名"
                 res.append("{0}: {1}".format(tp,cont))
+        url_prefix="http://wiki.joyme.com/arknights/"
+        url=url_prefix+urllib.parse.quote(name)
+        res.append(url)
+        
         return "\n".join(res)
         
     def fetch_data(self):
@@ -252,6 +273,7 @@ class Tags_recom(object):
         '近战位', '远程位',
         '近战', '远程',
         '资深干员','高级资深干员', 
+        '资深','高资', 
         '女', '男',
         '女性', '男性',
         '狙击干员', '术师干员', '特种干员', '重装干员', '辅助干员', '先锋干员', '医疗干员', '近卫干员',
@@ -337,6 +359,8 @@ class Tags_recom(object):
             # # print(x)
         
         #merge less rank 3
+        tag_cnt=0
+        max_num_until_del=15
         for tags_lis, lis in cob_lis:
             cnt=0
             sp_lis=[]
@@ -351,6 +375,11 @@ class Tags_recom(object):
                 lis.extend(sp_lis)
             if cnt>0 and len(lis)>0:
                 lis.append("...{0}".format(cnt))
+                # delete all contain <=3
+                if tag_cnt+len(lis)>max_num_until_del:
+                    lis.clear()
+                    max_num_until_del=-1
+            tag_cnt+=len(lis)
         cob_lis=[x for x in cob_lis if x[1]!=[]]
         
         return cob_lis
@@ -368,7 +397,7 @@ class Tags_recom(object):
         return False
         
     def avg_rank(self, cob_i):
-        rank_map={1:0.5, 2:1, 3:3, 4:2, 5:0.5, 6:3}
+        rank_map={1:0.5, 2:1, 3:10, 4:2, 5:0.5, 6:3}
         rank_list=list(map(lambda x:int(self.char_data.char_data[x]["rank"]),cob_i[1]))
         sum_score=0
         sum_cnt=0
@@ -381,11 +410,13 @@ class Tags_recom(object):
     def strip_tags(self, tags):
         restags=[]
         for tag in tags:
-            if tag=="高级资深干员" or tag=="资深干员":
-                restags.append(tag)
-            elif tag=="近战" or tag=="远程":
+            if tag in ["高级资深干员","高资"]:
+                restags.append("高级资深干员")
+            elif tag in ["资深干员","资深"]:
+                restags.append("资深干员")
+            elif tag in ["近战","远程"]:
                 restags.append(tag+"位")
-            elif tag=="男性" or tag=="女性":
+            elif tag in ["男性","女性"]:
                 tag=tag.replace("性","")
                 restags.append(tag)              
             elif "性干员" in tag:
@@ -416,16 +447,27 @@ class Tags_recom(object):
             if tag not in self.all_tags:
                 return False
         return True
+        
+    def filter_legal_tags(self, tags):
+        if not tags: return []
+        res=[]
+        for tag in tags:
+            if tag in self.all_tags:
+                res.append(tag)
+        return res
     
     def recom(self, tags=None, images=None):
         if not tags:
             if images:
                 tags=self.get_tags_from_image(images)
-                if not tags: return None
+                if not tags:
+                    print("MYDEBUG image checkfail {0}".format(images[0]))
+                    return None
             else:
                 return None
         
         if not self.check_legal_tags(tags):
+            print("MYDEBUG no legal tags")
             return None
         cob_lis=self.recom_tags(tags)
         if not cob_lis:
@@ -446,7 +488,11 @@ class Tags_recom(object):
     
     def get_tags_from_image(self, images):
         tags=self.ocr_tool.get_tags_from_url(images[0])
-        return tags
+        tags=self.filter_legal_tags(tags)
+        if len(tags)>=2:
+            return tags
+        else:
+            return []
         
         
 
@@ -458,16 +504,17 @@ if __name__=="__main__":
     char_data.extract_all_char(text_file=filename)
     print(char_data.char_data["艾雅法拉"])
     
-    # res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
+    res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
     
-    res=tags_recom.recom(["近卫", "男", "支援"])
+    # res=tags_recom.recom(["近卫", "男", "支援"])
     print(res)
     print("="*15)
     url="https://c2cpicdw.qpic.cn/offpic_new/1224067801//39b40a48-b543-4082-986d-f29ee82645d3/0?vuin=2473990407&amp;amp;term=2"
+    url="https://c2cpicdw.qpic.cn/offpic_new/391809494//857ddb74-7a0d-40ae-98db-068f8c733c86/0?vuin=2473990407&amp;amp;term=2"
     res=tags_recom.recom(images=[url])
     print(res)
     
-    res2=tags_recom.char_data.get_peo_info("艾雅法拉")
+    res2=tags_recom.char_data.get_peo_info("艾斯戴尔")
     print(res2)
     
     # st=set()
