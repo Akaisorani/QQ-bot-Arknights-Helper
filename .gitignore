@@ -1,6 +1,7 @@
 # my ignore
 test*
 apikeys*
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

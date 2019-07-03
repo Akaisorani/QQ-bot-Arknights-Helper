@@ -6,16 +6,14 @@ from html import unescape
 from lxml import html
 import os, sys
 
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
-
-from xpinyin import Pinyin
-
 o_path = os.getcwd()
 o_path=o_path+"/akaisora/plugins/"
 sys.path.append(o_path)
 
+from fuzzname import Fuzzname
 from ocr_tool import Ocr_tool
+from material import Material
+
 
 path_prefix="./akaisora/plugins/"
 # path_prefix=""
@@ -73,6 +71,19 @@ async def tell(session: CommandSession):
     # 向用户发送天气预报
     await session.send(tell_report)
 
+@on_command('mati', aliases=("材料",), only_to_me=False)
+async def mati(session: CommandSession):
+    name=session.state['name'] if 'name' in session.state else None
+    if not name :
+        url="https://github.com/Akaisorani/QQ-bot-Arknights-Helper/blob/master/README.md"
+        report=url
+    else:
+        # 获取城市的天气预报
+        report = await get_material_recom(name=name)
+        if report is None: return 
+    # 向用户发送天气预报
+    await session.send(report)
+
 # weather.args_parser 装饰器将函数声明为 weather 命令的参数解析器
 # 命令解析器用于将用户输入的参数解析成命令真正需要的数据
 @tagrc.args_parser
@@ -127,10 +138,23 @@ async def _(session: CommandSession):
             session.state['name'] = stripped_arg
         return
 
+@mati.args_parser
+async def _(session: CommandSession):
+    # 去掉消息首尾的空白符
+    stripped_arg = session.current_arg_text.strip()
+    
+    print("mati stripped_arg", stripped_arg)
+    if session.is_first_run:
+        # 该命令第一次运行（第一次进入命令会话）
+        if stripped_arg:
+            # 第一次运行参数不为空，意味着用户直接将城市名跟在命令名后面，作为参数传入
+            # 例如用户可能发送了：天气 南京
+            session.state['name'] = stripped_arg
+        return
+
 
 async def get_recomm_tags(tags: str, images: list) -> str:
     # 这里简单返回一个字符串
-    # 实际应用中，这里应该调用返回真实数据的天气 API，并拼接成天气预报内容
     tags_list=tags.split() if tags else []
     report=tags_recom.recom(tags_list, images)
     
@@ -138,8 +162,13 @@ async def get_recomm_tags(tags: str, images: list) -> str:
     
 async def get_peo_info(name: str) -> str:
     # 这里简单返回一个字符串
-    # 实际应用中，这里应该调用返回真实数据的天气 API，并拼接成天气预报内容
     report=tags_recom.char_data.get_peo_info(name)
+    
+    return report
+
+async def get_material_recom(name: str) -> str:
+    # 这里简单返回一个字符串
+    report=material_recom.recom(name)
     
     return report
 
@@ -156,8 +185,7 @@ class Character(object):
             "标签":"tags",
             "获取途径":"obtain_method"
         }
-        self.fuzzymap=dict()
-        self.pinyin=Pinyin()
+        self.fuzzname=Fuzzname()
         
     def extract_all_char(self, text_string=None, text_file=None, head_file=None):
         if text_file is None:text_file=path_prefix+"chardata.html"  
@@ -199,9 +227,7 @@ class Character(object):
             self.char_data[name]["all"]=all_lis
             
         # fuzzy name+pinyin -> name
-        self.fuzzymap=dict()
-        for name in self.char_data.keys():
-            self.fuzzymap[name+" "+self.pinyin.get_pinyin(name,'')]=name
+        self.fuzzname.fit(self.char_data.keys())
             
     def filter(self, tags):
         tags=tags[:]
@@ -230,9 +256,7 @@ class Character(object):
     def get_peo_info(self, name=None):
         if not name: return None
         if name not in self.char_data:
-            namepin=name+" "+self.pinyin.get_pinyin(name,'')
-            res=process.extractOne(namepin,self.fuzzymap.keys())
-            res=self.fuzzymap[res[0]]
+            res=self.fuzzname.predict(name)
             return "你可能想查 {0}".format(res)
         res=[]
         for tp, cont in zip(self.head_data,self.char_data[name]['all']):
@@ -497,6 +521,7 @@ class Tags_recom(object):
         
 
 tags_recom=Tags_recom()
+material_recom=Material()
 
 if __name__=="__main__":
     filename="chardata.html"
@@ -511,11 +536,14 @@ if __name__=="__main__":
     print("="*15)
     url="https://c2cpicdw.qpic.cn/offpic_new/1224067801//39b40a48-b543-4082-986d-f29ee82645d3/0?vuin=2473990407&amp;amp;term=2"
     url="https://c2cpicdw.qpic.cn/offpic_new/391809494//857ddb74-7a0d-40ae-98db-068f8c733c86/0?vuin=2473990407&amp;amp;term=2"
-    res=tags_recom.recom(images=[url])
-    print(res)
+    # res=tags_recom.recom(images=[url])
+    # print(res)
     
     res2=tags_recom.char_data.get_peo_info("艾斯戴尔")
     print(res2)
+
+    res=material_recom.recom("聚酸酯块")
+    print(res)
     
     # st=set()
     # for name,dic in tags_recom.char_data.char_data.items():

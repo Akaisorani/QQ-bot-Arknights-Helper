@@ -1,8 +1,8 @@
 import os, sys
 
-o_path = os.getcwd()
-o_path=o_path+"/../../"
-sys.path.append(o_path)
+# o_path = os.getcwd()
+# o_path=o_path+"/../../"
+# sys.path.append(o_path)
 
 from aip import AipOcr
 from apikeys import *
