@@ -86,9 +86,10 @@ class Material(object):
         for mati in mati_lis:
             name=mati.xpath("./a/@title")[0]
             if name and name in self.material_data:
-                self.material_data[name]["link"]=url_prefix+mati.xpath("./a/@href")[0]
+                sub_link=mati.xpath("./a/@href")[0]
+                self.material_data[name]["link"]=url_prefix+sub_link
                 self.material_data[name]["img"]=mati.xpath("./a/img/@src")[0]
-                self.material_data[name]["img_div"]=unescape(html.tostring(mati).decode('utf-8'))
+                self.material_data[name]["img_div"]=unescape(html.tostring(mati).decode('utf-8')).replace(sub_link,self.material_data[name]["link"])
 
         
 if __name__=="__main__":
