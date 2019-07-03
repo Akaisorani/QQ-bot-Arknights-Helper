@@ -90,7 +90,7 @@ or\
 5. Run Bot
 
 #### Linux
-Bucause CoolQ has no linux version, but we can run it in docker.
+CoolQ has no linux version, but we can run it in docker.
 1. Install [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
 2. Get and Run Docker CoolQ (with CoolQ HTTP API) image follow this [instruction](https://cqhttp.cc/docs/4.10/#/?id=%E4%BD%BF%E7%94%A8-docker)
 3. Run CoolQ and Activate the plugin above.
