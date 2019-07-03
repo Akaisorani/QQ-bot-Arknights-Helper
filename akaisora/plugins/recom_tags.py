@@ -43,9 +43,11 @@ async def hello(session: CommandSession):
 1.输入词条列表，空格隔开
     如: 近卫 男
 2.发送招募词条截图
-    
 3.tell 干员名称
     如: tell 艾雅法拉
+4.mati/材料 固源岩组
+5.mati/材料
+    (不加名称，查看表格)
 Github链接: https://github.com/Akaisorani/QQ-bot-Arknights-Helper"""
 
     await session.send(info_msg)
@@ -75,7 +77,7 @@ async def tell(session: CommandSession):
 async def mati(session: CommandSession):
     name=session.state['name'] if 'name' in session.state else None
     if not name :
-        url="https://github.com/Akaisorani/QQ-bot-Arknights-Helper/blob/master/README.md"
+        url="https://akaisorani.github.io/QQ-bot-Arknights-Helper/akaisora/plugins/materials"
         report=url
     else:
         # 获取城市的天气预报
