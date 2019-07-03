@@ -58,7 +58,7 @@ class Material(object):
         item_lis=["img_div"]+self.columns_name[:5]
         with open(o_path+"materials.md","w",encoding='UTF-8') as fp:
             fp.write("# 刷材料推荐地点\n\n")
-            fp.write("数据来源————丸丸\n\n")
+            fp.write("数据来源——丸丸\n\n")
             fp.write("<table>\n")
             fp.write("<tr>\n")
             for colname in [""]+self.columns_name[:5]:
