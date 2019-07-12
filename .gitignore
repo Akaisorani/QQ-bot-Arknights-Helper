@@ -2,6 +2,10 @@
 test*
 apikeys*
 .vscode/
+setu.py
+temp_save/
+default_save/
+cookies.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

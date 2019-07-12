@@ -17,12 +17,12 @@ class Material(object):
         self.name_lis=[]
         self.fuzzname=Fuzzname()
 
-        self.load_data(o_path+"res.csv")
+        self.load_data(o_path+"res-0712_2.csv")
     
     def load_data(self, filename):
         self.material_data=dict()
         self.name_lis=[]
-        with open(filename,encoding='UTF-8') as fp:
+        with open(filename,encoding='GBK') as fp:
             csv_reader=csv.reader(fp)
             self.columns_name=next(csv_reader)[:5]
             for line in csv_reader:

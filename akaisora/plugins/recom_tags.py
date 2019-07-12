@@ -7,9 +7,10 @@ from lxml import html
 import os, sys
 
 o_path = os.getcwd()
+sys.path.append(o_path)
 o_path=o_path+"/akaisora/plugins/"
 sys.path.append(o_path)
-
+from apikeys import *
 from fuzzname import Fuzzname
 from ocr_tool import Ocr_tool
 from material import Material
@@ -178,6 +179,7 @@ async def get_material_recom(name: str) -> str:
 class Character(object):
     def __init__(self):
         self.char_data=dict()
+        self.enemy_data=dict()
         self.head_data=[]
         self.head_key_map={
             "职业":"job",
@@ -189,10 +191,12 @@ class Character(object):
         }
         self.fuzzname=Fuzzname()
         
-    def extract_all_char(self, text_string=None, text_file=None, head_file=None):
+    def extract_all_char(self, text_string=None, text_file=None, head_file=None, enemy_file=None):
         if text_file is None:text_file=path_prefix+"chardata.html"  
         if head_file is None:head_file=path_prefix+"data_head.html" 
-        if not os.path.exists(text_file) or not os.path.exists(head_file):
+        if enemy_file is None:enemy_file=path_prefix+"enemylist.html"
+
+        if not os.path.exists(text_file) or not os.path.exists(head_file) or not os.path.exists(enemy_file):
             self.fetch_data()
         if text_string is None:
             with open(text_file,encoding='UTF-8') as fp:
@@ -227,9 +231,29 @@ class Character(object):
             text_lis=["".join([xx.strip() for xx in x.xpath(".//text()")]) for x in td_lis]
             all_lis=[x.strip() for x in text_lis]
             self.char_data[name]["all"]=all_lis
+
+            self.char_data[name]["type"]="friend"
+
+        # deal enemy
+        with open(enemy_file,encoding='UTF-8') as fp:
+            enemy_string=fp.read()
+
+        tree=html.fromstring(enemy_string)
+        enemy_res_lis=tree.xpath("//a")
+
+        self.enemy_data=dict()
+        enemy_link_root="http://ak.mooncell.wiki"
+        for enemy_a in enemy_res_lis:
+            name=enemy_a.xpath("./@title")[0]
+            self.enemy_data[name]=dict()
+            link=enemy_a.xpath("./@href")[0]
+            link=enemy_link_root+link
+
+            self.enemy_data[name]["link"]=link
+            self.enemy_data[name]["type"]="enemy"
             
         # fuzzy name+pinyin -> name
-        self.fuzzname.fit(self.char_data.keys())
+        self.fuzzname.fit(list(self.char_data.keys())+list(self.enemy_data.keys()))
             
     def filter(self, tags):
         tags=tags[:]
@@ -257,9 +281,18 @@ class Character(object):
         
     def get_peo_info(self, name=None):
         if not name: return None
-        if name not in self.char_data:
+        res=[]
+        if name in self.char_data:
+            res=self.format_friend_info(name)
+        elif name in self.enemy_data:
+            res=self.format_enemy_info(name)
+        else:
             res=self.fuzzname.predict(name)
-            return "你可能想查 {0}".format(res)
+            res=["你可能想查 {0}".format(res)]
+        
+        return "\n".join(res)
+
+    def format_friend_info(self, name):
         res=[]
         for tp, cont in zip(self.head_data,self.char_data[name]['all']):
             if tp:
@@ -268,8 +301,15 @@ class Character(object):
         url_prefix="http://wiki.joyme.com/arknights/"
         url=url_prefix+urllib.parse.quote(name)
         res.append(url)
-        
-        return "\n".join(res)
+
+        return res
+
+    def format_enemy_info(self, name):
+        res=[name]
+        url=self.enemy_data[name]["link"]
+        res.append(url)
+
+        return res    
         
     def fetch_data(self):
         r=requests.get("http://wiki.joyme.com/arknights/干员数据表")
@@ -287,6 +327,15 @@ class Character(object):
         tb_head=[x.strip() for x in tb_head]
         with open(path_prefix+"data_head.html","w",encoding='utf-8') as fp:
             fp.write(",".join(tb_head))
+
+        # get enemy data
+        r=requests.get("http://ak.mooncell.wiki/w/敌人一览")
+        tree=html.fromstring(r.text)
+
+        enemy_list=tree.xpath("//div[@class='enemyicon']/a")
+        res="".join([unescape(html.tostring(enemy).decode('utf-8')) for enemy in enemy_list]) 
+        with open(path_prefix+"enemylist.html","w",encoding='utf-8') as fp:
+            fp.write(res)        
                 
 class Tags_recom(object):
     def __init__(self):
@@ -328,7 +377,7 @@ class Tags_recom(object):
                 if i==j:continue
                 if set(cob_lis[i][1])==set(cob_lis[j][1]):
                     if set(cob_lis[i][0]).issubset(set(cob_lis[j][0])):
-                        cob_lis[i]=(cob_lis[i][0],[])
+                        cob_lis[j]=(cob_lis[j][0],[])
         cob_lis=[x for x in cob_lis if x[1]!=[]]
         # print("")
         # for x in cob_lis:
@@ -515,7 +564,9 @@ class Tags_recom(object):
     def get_tags_from_image(self, images):
         tags=self.ocr_tool.get_tags_from_url(images[0])
         tags=self.filter_legal_tags(tags)
-        if len(tags)>=2:
+        tags=list(set(tags))
+        print("ocr res=",tags)
+        if len(tags)>=2 and len(tags)<=8:
             return tags
         else:
             return []
@@ -528,7 +579,7 @@ material_recom=Material()
 if __name__=="__main__":
     filename="chardata.html"
     char_data=Character()
-    char_data.extract_all_char(text_file=filename)
+    char_data.extract_all_char()
     print(char_data.char_data["艾雅法拉"])
     
     res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
@@ -538,14 +589,20 @@ if __name__=="__main__":
     print("="*15)
     url="https://c2cpicdw.qpic.cn/offpic_new/1224067801//39b40a48-b543-4082-986d-f29ee82645d3/0?vuin=2473990407&amp;amp;term=2"
     url="https://c2cpicdw.qpic.cn/offpic_new/391809494//857ddb74-7a0d-40ae-98db-068f8c733c86/0?vuin=2473990407&amp;amp;term=2"
-    # res=tags_recom.recom(images=[url])
-    # print(res)
+    url="https://gchat.qpic.cn/gchatpic_new/2465342838/698793878-3133403591-5DB0FBC01E75F719EA8CD107F6416BAA/0?vuin=2473990407&amp;amp;term=2"
+    res=tags_recom.recom(images=[url])
+    print(res)
     
     res2=tags_recom.char_data.get_peo_info("艾斯戴尔")
     print(res2)
 
     res=material_recom.recom("聚酸酯块")
     print(res)
+
+    print(char_data.enemy_data["大鲍勃"])
+    res2=tags_recom.char_data.get_peo_info("大鲍勃")
+    print(res2)    
+
     
     # st=set()
     # for name,dic in tags_recom.char_data.char_data.items():
