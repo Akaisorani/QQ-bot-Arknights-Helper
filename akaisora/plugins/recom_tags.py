@@ -14,6 +14,7 @@ from apikeys import *
 from fuzzname import Fuzzname
 from ocr_tool import Ocr_tool
 from material import Material
+from record import Record
 
 
 path_prefix="./akaisora/plugins/"
@@ -87,6 +88,16 @@ async def mati(session: CommandSession):
     # 向用户发送天气预报
     await session.send(report)
 
+@on_command('stat', aliases=("统计",), only_to_me=False)
+async def stat(session: CommandSession):
+    name=session.state['name'] if 'name' in session.state else None
+    if name:
+        # 获取城市的天气预报
+        report = await get_stat_report(name=name)
+        if report is None: return 
+    # 向用户发送天气预报
+    await session.send(report)
+
 # weather.args_parser 装饰器将函数声明为 weather 命令的参数解析器
 # 命令解析器用于将用户输入的参数解析成命令真正需要的数据
 @tagrc.args_parser
@@ -155,6 +166,20 @@ async def _(session: CommandSession):
             session.state['name'] = stripped_arg
         return
 
+@stat.args_parser
+async def _(session: CommandSession):
+    # 去掉消息首尾的空白符
+    stripped_arg = session.current_arg_text.strip()
+    
+    print("stat stripped_arg", stripped_arg)
+    if session.is_first_run:
+        # 该命令第一次运行（第一次进入命令会话）
+        if stripped_arg:
+            # 第一次运行参数不为空，意味着用户直接将城市名跟在命令名后面，作为参数传入
+            # 例如用户可能发送了：天气 南京
+            session.state['name'] = stripped_arg
+        return
+
 
 async def get_recomm_tags(tags: str, images: list) -> str:
     # 这里简单返回一个字符串
@@ -175,6 +200,35 @@ async def get_material_recom(name: str) -> str:
     
     return report
 
+async def get_stat_report(name: str) -> str:
+    # 这里简单返回一个字符串
+    rep_num=10
+
+    if name=="tag":
+        obj=tags_recom.record.get()
+    elif name=="干员":
+        obj=tags_recom.char_data.record.get()
+        if "friend" not in obj:obj["friend"]=dict()
+        obj=obj["friend"]
+    elif name=="敌人":
+        obj=tags_recom.char_data.record.get()
+        if "enemy" not in obj:obj["enemy"]=dict()
+        obj=obj["enemy"]
+    elif name=="材料":
+        obj=material_recom.record.get()
+    else:
+        return None 
+
+    report=""
+    lis=list(obj.items())
+    lis.sort(key=lambda x:x[1], reverse=True)
+    lis=lis[:rep_num]
+    lis=["{0}({1})".format(x[0],x[1]) for x in lis]
+    res=", ".join(lis)
+    report="群友最喜欢查的前{0}个{1}是：\n".format(rep_num,name)+res
+    
+    return report
+
 
 class Character(object):
     def __init__(self):
@@ -190,6 +244,7 @@ class Character(object):
             "获取途径":"obtain_method"
         }
         self.fuzzname=Fuzzname()
+        self.record=Record(path_prefix+"record_peo.txt")
         
     def extract_all_char(self, text_string=None, text_file=None, head_file=None, enemy_file=None):
         if text_file is None:text_file=path_prefix+"chardata.html"  
@@ -239,15 +294,18 @@ class Character(object):
             enemy_string=fp.read()
 
         tree=html.fromstring(enemy_string)
-        enemy_res_lis=tree.xpath("//a")
+        # print(unescape(html.tostring(tree).decode('utf-8')))
+        enemy_res_lis=tree.xpath("./div")
+        # print(enemy_res_lis)
 
         self.enemy_data=dict()
-        enemy_link_root="http://ak.mooncell.wiki"
+        enemy_link_root="http://ak.mooncell.wiki/w/"
         for enemy_a in enemy_res_lis:
-            name=enemy_a.xpath("./@title")[0]
+            # print(unescape(html.tostring(enemy_a).decode('utf-8')))
+            name=enemy_a.xpath("./@data-name")[0]
+            # print("===="+name)
             self.enemy_data[name]=dict()
-            link=enemy_a.xpath("./@href")[0]
-            link=enemy_link_root+link
+            link=enemy_link_root+urllib.parse.quote(name)
 
             self.enemy_data[name]["link"]=link
             self.enemy_data[name]["type"]="enemy"
@@ -284,8 +342,10 @@ class Character(object):
         res=[]
         if name in self.char_data:
             res=self.format_friend_info(name)
+            self.record.add("friend/"+name)
         elif name in self.enemy_data:
             res=self.format_enemy_info(name)
+            self.record.add("enemy/"+name)
         else:
             res=self.fuzzname.predict(name)
             res=["你可能想查 {0}".format(res)]
@@ -332,7 +392,7 @@ class Character(object):
         r=requests.get("http://ak.mooncell.wiki/w/敌人一览")
         tree=html.fromstring(r.text)
 
-        enemy_list=tree.xpath("//div[@class='enemyicon']/a")
+        enemy_list=tree.xpath("//div[@class='smwdata']")
         res="".join([unescape(html.tostring(enemy).decode('utf-8')) for enemy in enemy_list]) 
         with open(path_prefix+"enemylist.html","w",encoding='utf-8') as fp:
             fp.write(res)        
@@ -356,6 +416,7 @@ class Tags_recom(object):
         }  
         
         self.ocr_tool=Ocr_tool()
+        self.record=Record(path_prefix+"record_tags.txt",writecnt=50)
         
     def recom_tags(self, tags):
         tags=self.strip_tags(tags)
@@ -530,7 +591,11 @@ class Tags_recom(object):
             if tag in self.all_tags:
                 res.append(tag)
         return res
-    
+
+    def record_tags(self, tags):
+        for tag in tags:
+            self.record.add(tag)
+
     def recom(self, tags=None, images=None):
         if not tags:
             if images:
@@ -544,6 +609,7 @@ class Tags_recom(object):
         if not self.check_legal_tags(tags):
             print("MYDEBUG no legal tags")
             return None
+        self.record_tags(tags)
         cob_lis=self.recom_tags(tags)
         if not cob_lis:
             return "没有或者太多"
@@ -590,8 +656,8 @@ if __name__=="__main__":
     url="https://c2cpicdw.qpic.cn/offpic_new/1224067801//39b40a48-b543-4082-986d-f29ee82645d3/0?vuin=2473990407&amp;amp;term=2"
     url="https://c2cpicdw.qpic.cn/offpic_new/391809494//857ddb74-7a0d-40ae-98db-068f8c733c86/0?vuin=2473990407&amp;amp;term=2"
     url="https://gchat.qpic.cn/gchatpic_new/2465342838/698793878-3133403591-5DB0FBC01E75F719EA8CD107F6416BAA/0?vuin=2473990407&amp;amp;term=2"
-    res=tags_recom.recom(images=[url])
-    print(res)
+    # res=tags_recom.recom(images=[url])
+    # print(res)
     
     res2=tags_recom.char_data.get_peo_info("艾斯戴尔")
     print(res2)
@@ -600,8 +666,26 @@ if __name__=="__main__":
     print(res)
 
     print(char_data.enemy_data["大鲍勃"])
-    res2=tags_recom.char_data.get_peo_info("大鲍勃")
-    print(res2)    
+    # tags_recom.char_data.fetch_data()
+    tags_recom.char_data.extract_all_char()
+    res2=tags_recom.char_data.get_peo_info("法术大师A2")
+    print(res2)
+
+    # for i in range(20):
+    #     tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
+    #     tags_recom.recom(["近卫", "男", "支援"])
+    #     tags_recom.char_data.get_peo_info("艾丝戴尔")
+    #     tags_recom.char_data.get_peo_info("艾雅法拉")
+    #     res=material_recom.recom("聚酸酯块")
+    #     tags_recom.char_data.get_peo_info("大鲍勃")
+    
+    # for name in ["tag","干员","材料","敌人"]:
+    #     report = get_stat_report(name=name)
+    #     print(report)
+
+
+
+
 
     
     # st=set()

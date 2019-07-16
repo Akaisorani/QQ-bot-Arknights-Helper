@@ -9,6 +9,7 @@ import urllib
 from html import unescape
 from lxml import html
 from fuzzname import Fuzzname
+from record import Record
 
 class Material(object):
     def __init__(self):
@@ -18,6 +19,7 @@ class Material(object):
         self.fuzzname=Fuzzname()
 
         self.load_data(o_path+"res-0712_2.csv")
+        self.record=Record(o_path+"record_material.txt")
     
     def load_data(self, filename):
         self.material_data=dict()
@@ -51,6 +53,8 @@ class Material(object):
         if name not in self.material_data:
             name=self.fuzzname.predict(name)
         res=self.format(name)
+        self.record.add(name)
+
         return res
 
     def export_table_md(self):

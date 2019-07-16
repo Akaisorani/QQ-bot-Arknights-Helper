@@ -6,6 +6,9 @@ setu.py
 temp_save/
 default_save/
 cookies.txt
+record_material.txt
+record_peo.txt
+record_tags.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
