@@ -18,13 +18,13 @@ class Material(object):
         self.name_lis=[]
         self.fuzzname=Fuzzname()
 
-        self.load_data(o_path+"res-0712_2.csv")
+        self.load_data(o_path+"res-0719.csv")
         self.record=Record(o_path+"record_material.txt")
     
     def load_data(self, filename):
         self.material_data=dict()
         self.name_lis=[]
-        with open(filename,encoding='GBK') as fp:
+        with open(filename,encoding='UTF-8') as fp:
             csv_reader=csv.reader(fp)
             self.columns_name=next(csv_reader)[:5]
             for line in csv_reader:
@@ -99,7 +99,7 @@ class Material(object):
         
 if __name__=="__main__":
     material_recom=Material()
-    res=material_recom.recom("聚酸酯块")
+    res=material_recom.recom("固源岩")
     print(res)
 
     material_recom.export_table_md()
