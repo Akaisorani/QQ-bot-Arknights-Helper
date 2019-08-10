@@ -313,12 +313,18 @@ class Character(object):
         # fuzzy name+pinyin -> name
         self.fuzzname.fit(list(self.char_data.keys())+list(self.enemy_data.keys()))
             
-    def filter(self, tags):
+    def filter(self, tags, flags={}):
         tags=tags[:]
         ranks=self.gen_ranks(tags)
         for name, dic in self.char_data.items():
-            if set(tags).issubset(set(dic["tags"])) and "公开招募" in dic["obtain_method"] and dic["rank"] in ranks:
-                yield name
+            if set(tags).issubset(set(dic["tags"])): pass
+            else: continue
+            if dic["rank"] in ranks or ('show_all' in flags and flags['show_all']==True): pass
+            else: continue
+            if "公开招募" in dic["obtain_method"] or ('show_all' in flags and flags['show_all']==True): pass
+            else: continue
+                
+            yield name
      
     def gen_ranks(self, tags):
         ranks=["1","2","3","4","5","6"]
@@ -412,20 +418,22 @@ class Tags_recom(object):
         '女', '男',
         '女性', '男性',
         '狙击干员', '术师干员', '特种干员', '重装干员', '辅助干员', '先锋干员', '医疗干员', '近卫干员',
-        '女性干员', '男性干员'
+        '女性干员', '男性干员',
+        # flags
+        '全部'
         }  
         
         self.ocr_tool=Ocr_tool()
         self.record=Record(path_prefix+"record_tags.txt",writecnt=50)
         
-    def recom_tags(self, tags):
+    def recom_tags(self, tags, flags={}):
         tags=self.strip_tags(tags)
     
         itertag=self.iter_all_combine(tags)
         if itertag is None:return []
         cob_lis=list(itertag)
         cob_lis.remove([])
-        cob_lis=[(tags_lis, list(self.char_data.filter(tags_lis))) for tags_lis in cob_lis]
+        cob_lis=[(tags_lis, list(self.char_data.filter(tags_lis, flags))) for tags_lis in cob_lis]
         cob_lis=[x for x in cob_lis if x[1]!=[]]
         
         # print("")
@@ -445,14 +453,15 @@ class Tags_recom(object):
             # print(x)
    
         # special remove
-        for i in range(len(cob_lis)):
-            if self.is_special_rm(cob_lis[i]):
-                cob_lis[i]=(cob_lis[i][0],[])
-        cob_lis=[x for x in cob_lis if x[1]!=[]]
-        # print("")
-        # for x in cob_lis:
-            # print(x)   
-        
+        if ('show_all' not in flags or flags['show_all']==False):
+            for i in range(len(cob_lis)):
+                if self.is_special_rm(cob_lis[i]):
+                    cob_lis[i]=(cob_lis[i][0],[])
+            cob_lis=[x for x in cob_lis if x[1]!=[]]
+            # print("")
+            # for x in cob_lis:
+                # print(x)   
+
         # sort
         cob_lis.sort(key=self.avg_rank, reverse=True)
         for tags_lis, lis in cob_lis:
@@ -495,29 +504,30 @@ class Tags_recom(object):
             # # print(x)
         
         #merge less rank 3
-        tag_cnt=0
-        max_num_until_del=15
-        for tags_lis, lis in cob_lis:
-            cnt=0
-            sp_lis=[]
-            while len(lis)>0 and self.char_data.char_data[lis[-1]]["rank"]<="3":
-                res=lis.pop()
-                if res=="Castle-3":
-                    sp_lis.append(res)
-                else:
-                    cnt+=1
+        if ('show_all' not in flags or flags['show_all']==False):
+            tag_cnt=0
+            max_num_until_del=15
+            for tags_lis, lis in cob_lis:
+                cnt=0
+                sp_lis=[]
+                while len(lis)>0 and self.char_data.char_data[lis[-1]]["rank"]<="3":
+                    res=lis.pop()
+                    if res=="Castle-3":
+                        sp_lis.append(res)
+                    else:
+                        cnt+=1
+                
+                if len(sp_lis)>0:
+                    lis.extend(sp_lis)
+                if cnt>0 and len(lis)>0:
+                    lis.append("...{0}".format(cnt))
+                    # delete all contain <=3
+                    if tag_cnt+len(lis)>max_num_until_del:
+                        lis.clear()
+                        max_num_until_del=-1
+                tag_cnt+=len(lis)
+            cob_lis=[x for x in cob_lis if x[1]!=[]]
             
-            if len(sp_lis)>0:
-                lis.extend(sp_lis)
-            if cnt>0 and len(lis)>0:
-                lis.append("...{0}".format(cnt))
-                # delete all contain <=3
-                if tag_cnt+len(lis)>max_num_until_del:
-                    lis.clear()
-                    max_num_until_del=-1
-            tag_cnt+=len(lis)
-        cob_lis=[x for x in cob_lis if x[1]!=[]]
-        
         return cob_lis
         # print("")
         # for x in cob_lis:
@@ -592,9 +602,24 @@ class Tags_recom(object):
                 res.append(tag)
         return res
 
+    def split_flags(self, tags):
+        if not tags: return [],{}
+        tags=list(set(tags))
+        flags={}
+        if '全部' in tags:
+            flags['show_all']=True
+            tags.remove('全部')
+        else:
+            flags['show_all']=False
+
+        return tags, flags
+
+
+
     def record_tags(self, tags):
         for tag in tags:
             self.record.add(tag)
+
 
     def recom(self, tags=None, images=None):
         if not tags:
@@ -606,11 +631,14 @@ class Tags_recom(object):
             else:
                 return None
         
+        tags, flags=self.split_flags(tags)
+
         if not self.check_legal_tags(tags):
             print("MYDEBUG no legal tags")
             return None
+
         self.record_tags(tags)
-        cob_lis=self.recom_tags(tags)
+        cob_lis=self.recom_tags(tags, flags)
         if not cob_lis:
             return "没有或者太多"
         line_lis=[]
@@ -683,7 +711,11 @@ if __name__=="__main__":
     #     report = get_stat_report(name=name)
     #     print(report)
 
+    res=tags_recom.recom(["近卫", "男", "支援", "全部"])
+    print(res)
 
+    res=tags_recom.recom(["男", "全部"])
+    print(res)
 
 
 

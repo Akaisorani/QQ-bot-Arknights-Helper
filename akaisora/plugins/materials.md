@@ -23,7 +23,7 @@
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #00AAEE;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E6%89%AD%E8%BD%AC%E9%86%87" title="扭转醇"><img alt="扭转醇.png" src="http://p5.qhimg.com/dr/40__/t012969254d8c583793.png" width="40" height="40" data-file-name="扭转醇.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>扭转醇</td>
 <td>蓝</td>
-<td>4-4（约0.37个/18体）</td>
+<td>4-4（约0.38个/18体）</td>
 <td>2-9（约0.26个/12体）</td>
 <td></td>
 </tr>
@@ -39,7 +39,7 @@
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #00AAEE;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E8%BD%BB%E9%94%B0%E7%9F%BF" title="轻锰矿"><img alt="轻锰矿.png" src="http://p9.qhimg.com/dr/40__/t01b911608df7732dc3.png" width="40" height="40" data-file-name="轻锰矿.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>轻锰矿</td>
 <td>蓝</td>
-<td>4-7（约0.29个/18体）</td>
+<td>4-3（约0.29个/18体）</td>
 <td>3-2（约0.37个/15体）</td>
 <td></td>
 </tr>
@@ -55,7 +55,7 @@
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #00AAEE;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E7%A0%94%E7%A3%A8%E7%9F%B3" title="研磨石"><img alt="研磨石.png" src="http://p3.qhimg.com/dr/40__/t017c06993962387008.png" width="40" height="40" data-file-name="研磨石.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>研磨石</td>
 <td>蓝</td>
-<td>4-8（约0.36个/21体）</td>
+<td>4-8（约0.35个/21体）</td>
 <td>3-3（约0.32个/15体）</td>
 <td></td>
 </tr>
@@ -87,7 +87,7 @@
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #00AAEE;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E5%9B%BA%E6%BA%90%E5%B2%A9%E7%BB%84" title="固源岩组"><img alt="固源岩组.png" src="http://p0.qhimg.com/dr/40__/t01e388e4bd786583cc.png" width="40" height="40" data-file-name="固源岩组.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>固源岩组</td>
 <td>蓝</td>
-<td>4-6（约0.46个/18体）</td>
+<td>4-6（约0.45个/18体）</td>
 <td>2-4（约0.42个/12体）</td>
 <td>该材料直刷效率明显小于合成效率，建议合成</td>
 </tr>
@@ -95,16 +95,16 @@
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #DCDC00;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E5%9B%BA%E6%BA%90%E5%B2%A9" title="固源岩"><img alt="固源岩.png" src="http://p7.qhimg.com/dr/40__/t0199099c5b08a71a7c.png" width="40" height="40" data-file-name="固源岩.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>固源岩</td>
 <td>绿</td>
-<td>4-7（约0.29个/18体，主修轻锰矿（约0.29个/18体））& 5-5（约0.32个/18体，主修异铁组（约0.29个/18体））</td>
-<td>1-7（约1.25个/6体）</td>
-<td>0719数据：本次更新把5-10踢出综合名单，仅排第四，5-10（约1.86个/21体，另修全新装置（约0.31个/21体））</td>
+<td>1-7（约1.24个/6体）& 4-10（约0.34个/21体，主修全新装置（约0.30个/21体））</td>
+<td>1-7（约1.24个/6体）</td>
+<td></td>
 </tr>
 <tr>
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #A0A0A0;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E6%BA%90%E5%B2%A9" title="源岩"><img alt="源岩.png" src="http://p0.qhimg.com/dr/40__/t01ad2e7fb00256fd86.png" width="40" height="40" data-file-name="源岩.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>源岩</td>
 <td>灰</td>
-<td>2-6（约0.43个/12体，主修聚酸酯组（约0.35个/12体））</td>
-<td>S2-5（约3.56个/12体）</td>
+<td>2-6（约0.42个/12体，主修聚酸酯组（约0.35个/12体））</td>
+<td>S2-5（约3.59个/12体）</td>
 <td></td>
 </tr>
 <tr>
@@ -127,16 +127,16 @@
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #DCDC00;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E8%A3%85%E7%BD%AE" title="装置"><img alt="装置.png" src="http://p7.qhimg.com/dr/40__/t0168ce9414da96fd12.png" width="40" height="40" data-file-name="装置.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>装置</td>
 <td>绿</td>
-<td>S3-4（约0.90个/15体）</td>
-<td>S3-4（约0.90个/15体）</td>
+<td>4-10（约0.13个/21体）& 5-2（约个0.13/18体，另修糖组（约0.36个/18体））</td>
+<td>S3-4（约0.91个/15体）</td>
 <td></td>
 </tr>
 <tr>
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #A0A0A0;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E7%A0%B4%E6%8D%9F%E8%A3%85%E7%BD%AE" title="破损装置"><img alt="破损装置.png" src="http://p0.qhimg.com/dr/40__/t01d215deb8b5d92450.png" width="40" height="40" data-file-name="破损装置.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>破损装置</td>
 <td>灰</td>
-<td>2-3（约1.50个/12体）</td>
-<td>2-3（约1.50个/12体）</td>
+<td>2-3（约1.52个/12体）</td>
+<td>2-3（约1.52个/12体）</td>
 <td></td>
 </tr>
 <tr>
@@ -184,23 +184,23 @@
 <td>糖组</td>
 <td>蓝</td>
 <td>4-2（约0.40个/18体）</td>
-<td>2-5（约0.36个/12体）</td>
+<td>2-5（约0.37个/12体）</td>
 <td></td>
 </tr>
 <tr>
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #DCDC00;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E7%B3%96" title="糖"><img alt="糖.png" src="http://p6.qhimg.com/dr/40__/t01b6d8d6c9998565fa.png" width="40" height="40" data-file-name="糖.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>糖</td>
 <td>绿</td>
-<td>5-3（约0.84个/18体，主修聚酸酯组（约0.48个/18体））</td>
-<td>S3-1（约1.53个/15体）</td>
+<td>5-3（约0.86个/18体，主修聚酸酯组（约0.48个/18体））</td>
+<td>S3-1（约1.52个/15体）</td>
 <td></td>
 </tr>
 <tr>
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #A0A0A0;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E4%BB%A3%E7%B3%96" title="代糖"><img alt="代糖.png" src="http://p2.qhimg.com/dr/40__/t01a5d1fe85a7273fdd.png" width="40" height="40" data-file-name="代糖.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>代糖</td>
 <td>灰</td>
-<td>2-5（约0.26个/12体，主修糖组（约0.37个/12体））</td>
-<td>S2-6（约2.44个/12体）</td>
+<td>2-5（约0.25个/12体，主修糖组（约0.37个/12体））</td>
+<td>S2-6（约2.45个/12体）</td>
 <td></td>
 </tr>
 <tr>
@@ -216,14 +216,14 @@
 <td>异铁组</td>
 <td>蓝</td>
 <td>S4-1（约0.32个/18体）</td>
-<td>S4-1（约0.32个/18体）</td>
+<td>2-8（约0.22个/12体）</td>
 <td></td>
 </tr>
 <tr>
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #DCDC00;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E5%BC%82%E9%93%81" title="异铁"><img alt="异铁.png" src="http://p3.qhimg.com/dr/40__/t01544eceac5ae76955.png" width="40" height="40" data-file-name="异铁.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>异铁</td>
 <td>绿</td>
-<td>4-2（约0.15个/18体，主修糖组（约0.40个/18体））</td>
+<td>S4-1（约0.16个/18体）& 5-7（约1.10个/21体，另修研磨石（约0.33个/21体））</td>
 <td>S3-3（约1.23个/15体）</td>
 <td></td>
 </tr>
@@ -232,7 +232,7 @@
 <td>异铁碎片</td>
 <td>灰</td>
 <td>2-5（约0.20个/12体，主修糖组（约0.36个/12体））</td>
-<td>S2-8（约1.97个/12体）</td>
+<td>S2-8（约1.95个/12体）</td>
 <td></td>
 </tr>
 <tr>
@@ -248,23 +248,23 @@
 <td>酮凝集组</td>
 <td>蓝</td>
 <td>4-5（约0.31个/18体）</td>
-<td>3-1（约0.36个/15体）</td>
+<td>3-1（约0.37个/15体）</td>
 <td></td>
 </tr>
 <tr>
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #DCDC00;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E9%85%AE%E5%87%9D%E9%9B%86" title="酮凝集"><img alt="酮凝集.png" src="http://p1.qhimg.com/dr/40__/t01cc0d9ad8829eac3e.png" width="40" height="40" data-file-name="酮凝集.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>酮凝集</td>
 <td>绿</td>
-<td>3-7（约1.26个/15体）</td>
-<td>3-7（约1.26个/15体）</td>
+<td>3-7（约1.25个/15体）</td>
+<td>3-7（约1.25个/15体）</td>
 <td></td>
 </tr>
 <tr>
 <td><div style="position:relative;display:inline-block;margin:auto;text-align:center;overflow:hidden;width:44px;height:44px;border:2px solid #A0A0A0;border-radius: 8px"><a href="http://wiki.joyme.com/arknights/%E5%8F%8C%E9%85%AE" title="双酮"><img alt="双酮.png" src="http://p6.qhimg.com/dr/40__/t01ad3c2924abc2513b.png" width="40" height="40" data-file-name="双酮.png" data-file-width="120" data-file-height="120"></a></div></td>
 <td>双酮</td>
 <td>灰</td>
-<td>4-5（约0.34个/18体，主修酮凝集组（约0.31个/18体））</td>
-<td>S2-9（约2.15个/12体）</td>
+<td>3-8（约0.31个/18体，主修聚酸酯组（约0.39个/18体））</td>
+<td>S2-9（约2.05个/12体）</td>
 <td></td>
 </tr>
 <tr>

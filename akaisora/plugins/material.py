@@ -18,7 +18,7 @@ class Material(object):
         self.name_lis=[]
         self.fuzzname=Fuzzname()
 
-        self.load_data(o_path+"res-0719.csv")
+        self.load_data(o_path+"res-0810.csv")
         self.record=Record(o_path+"record_material.txt")
     
     def load_data(self, filename):
