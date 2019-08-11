@@ -8,7 +8,9 @@ It can help you choose which tag/tags to use in "公开招募"
 <td><img src="https://s2.ax1x.com/2019/06/14/VhOIVx.jpg" alt="VhOIVx.jpg" border="0" width = "250"/></td>
 <td><img src="https://s2.ax1x.com/2019/06/14/VhXlz4.jpg" alt="VhXlz4.jpg" border="0" width = "250"/></td>
 </tr></table>
+
 ## Usage
+
 1. tag list split by space
 >e.g. 近卫 男
 
@@ -56,7 +58,8 @@ It can help you choose which tag/tags to use in "公开招募"
 >update character data from wiki
 
 6. mati/材料 固源岩组
-   mati/材料
+
+   mati/材料\
     (不加名称，查看表格)
 
 ## File Structure
@@ -65,6 +68,10 @@ It can help you choose which tag/tags to use in "公开招募"
    ├─akaisora
    │  └─plugins
    │      │  recom_tags.py
+   │      │  material.py
+   │      │  ocr_tool.py
+   │      │  fuzzname.py
+   │      │  record.py
    │      └─ chardata.html
    │  bot.py
    └─ config.py
@@ -76,7 +83,7 @@ Python: Python>=3.6.1
 Packages: nonebot>=1.3.0, baidu-aip>=2.2.13.0, fuzzywuzzy>=0.17.0, xpinyin>=0.5.6
 ```
 
-## Usage
+## Run
 ### 1. Run Bot
 `python bot.py`\
 or\
