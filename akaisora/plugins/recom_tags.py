@@ -5,6 +5,7 @@ import urllib
 from html import unescape
 from lxml import html
 import os, sys
+import json
 
 o_path = os.getcwd()
 sys.path.append(o_path)
@@ -58,10 +59,12 @@ Github链接: https://github.com/Akaisorani/QQ-bot-Arknights-Helper"""
 async def update_data(session: CommandSession):
 
     tags_recom.char_data.fetch_data()
-    tags_recom.char_data.extract_all_char(text_file=path_prefix+"chardata.html")
+    print("fetch done")
+    tags_recom.char_data.extract_all_char()
+    print("extract done")
     
     
-    info_msg="update done"
+    info_msg="update done"+"\nupdated {0}characters, {1}enemies".format(len(tags_recom.char_data.char_data),len(tags_recom.char_data.enemy_data))
 
     await session.send(info_msg)
     
@@ -245,71 +248,22 @@ class Character(object):
         }
         self.fuzzname=Fuzzname()
         self.record=Record(path_prefix+"record_peo.txt")
-        
-    def extract_all_char(self, text_string=None, text_file=None, head_file=None, enemy_file=None):
-        if text_file is None:text_file=path_prefix+"chardata.html"  
-        if head_file is None:head_file=path_prefix+"data_head.html" 
-        if enemy_file is None:enemy_file=path_prefix+"enemylist.html"
 
-        if not os.path.exists(text_file) or not os.path.exists(head_file) or not os.path.exists(enemy_file):
+    def extract_all_char(self, text_file=None, enemy_file=None):
+        if text_file is None:text_file=path_prefix+"chardata.json"  
+        if enemy_file is None:enemy_file=path_prefix+"enemylist.json"
+
+        if not os.path.exists(text_file) or not os.path.exists(enemy_file):
             self.fetch_data()
-        if text_string is None:
-            with open(text_file,encoding='UTF-8') as fp:
-                text_string=fp.read()
-        with open(head_file,encoding='UTF-8') as fp:
-            head_string=fp.read()
-        self.head_data=head_string.split(',')
 
-        tree=html.fromstring(text_string)
-        char_res_lis=tree.xpath("//tr")
-        
-        self.char_data=dict()
-        for char_tr in char_res_lis:
-            name=char_tr.xpath("./td[2]/a[1]/text()")[0]
-            self.char_data[name]=dict()
-            self.char_data[name]["job"]=char_tr.xpath("./@data-param1")[0]
-            self.char_data[name]["rank"]=char_tr.xpath("./@data-param2")[0].split(",")[0]
-            self.char_data[name]["sex"]=char_tr.xpath("./@data-param3")[0]
-            self.char_data[name]["affiliation"]=char_tr.xpath("./@data-param4")[0]
-            tag_string=char_tr.xpath("./@data-param5")[0]+", " \
-                        +self.char_data[name]["sex"]+", " \
-                        +self.char_data[name]["job"]+", " \
-                        +("资深干员" if self.char_data[name]["rank"]=="5" else "")+", " \
-                        +("高级资深干员" if self.char_data[name]["rank"]=="6" else "")+", "
-            taglist=[x.strip() for x in tag_string.split(",")]
-            taglist=[x for x in taglist if x!=""]
-            self.char_data[name]["tags"]=taglist
-            self.char_data[name]["obtain_method"]=list(map(lambda x: x.strip(), char_tr.xpath("./@data-param6")[0].split(",")))
-            
-            #deal head and data
-            td_lis=char_tr.xpath(".//td")
-            text_lis=["".join([xx.strip() for xx in x.xpath(".//text()")]) for x in td_lis]
-            all_lis=[x.strip() for x in text_lis]
-            self.char_data[name]["all"]=all_lis
-
-            self.char_data[name]["type"]="friend"
+        # deal char
+        with open(text_file,encoding='UTF-8') as fp:
+            self.char_data=json.load(fp)
 
         # deal enemy
         with open(enemy_file,encoding='UTF-8') as fp:
-            enemy_string=fp.read()
-
-        tree=html.fromstring(enemy_string)
-        # print(unescape(html.tostring(tree).decode('utf-8')))
-        enemy_res_lis=tree.xpath("./div")
-        # print(enemy_res_lis)
-
-        self.enemy_data=dict()
-        enemy_link_root="http://ak.mooncell.wiki/w/"
-        for enemy_a in enemy_res_lis:
-            # print(unescape(html.tostring(enemy_a).decode('utf-8')))
-            name=enemy_a.xpath("./@data-name")[0]
-            # print("===="+name)
-            self.enemy_data[name]=dict()
-            link=enemy_link_root+urllib.parse.quote(name)
-
-            self.enemy_data[name]["link"]=link
-            self.enemy_data[name]["type"]="enemy"
-            
+            self.enemy_data=json.load(fp)
+           
         # fuzzy name+pinyin -> name
         self.fuzzname.fit(list(self.char_data.keys())+list(self.enemy_data.keys()))
             
@@ -345,7 +299,7 @@ class Character(object):
         
     def get_peo_info(self, name=None):
         if not name: return None
-        res=[]
+        res="None"
         if name in self.char_data:
             res=self.format_friend_info(name)
             self.record.add("friend/"+name)
@@ -354,59 +308,138 @@ class Character(object):
             self.record.add("enemy/"+name)
         else:
             res=self.fuzzname.predict(name)
-            res=["你可能想查 {0}".format(res)]
+            res="你可能想查 {0}".format(res)
         
-        return "\n".join(res)
+        return res
 
     def format_friend_info(self, name):
         res=[]
-        for tp, cont in zip(self.head_data,self.char_data[name]['all']):
+        for tp, cont in self.char_data[name]['all'].items():
             if tp:
                 if tp=="干员代号":tp="姓名"
                 res.append("{0}: {1}".format(tp,cont))
-        url_prefix="http://wiki.joyme.com/arknights/"
-        url=url_prefix+urllib.parse.quote(name)
+        url=self.char_data[name]["link"]
         res.append(url)
 
-        return res
+        return "\n".join(res)
 
     def format_enemy_info(self, name):
         res=[name]
         url=self.enemy_data[name]["link"]
         res.append(url)
 
-        return res    
+        return "\n".join(res)
         
     def fetch_data(self):
+        self.fetch_character_from_wikijoyme()
+
+        try:
+            self.fetch_enemy_from_akmooncell()
+        except Exception as e:
+            print(e)
+            self.fetch_enemy_from_wikijoyme()
+
+    def fetch_character_from_wikijoyme(self, filename="chardata.json"):
         r=requests.get("http://wiki.joyme.com/arknights/干员数据表")
+        if r.status_code!=200: raise IOError("Cannot fetch char from wikijoyme")
         tree=html.fromstring(r.text)
-        
-        # people data
-        people_list=tree.xpath("//tr[@data-param1]")
-        res="".join([unescape(html.tostring(peo).decode('utf-8')) for peo in people_list])
-        
-        with open(path_prefix+"chardata.html","w",encoding='utf-8') as fp:
-            fp.write(res)
-        
+
         # table head data
         tb_head=tree.xpath("//table[@id='CardSelectTr']//th/text()")
         tb_head=[x.strip() for x in tb_head]
-        with open(path_prefix+"data_head.html","w",encoding='utf-8') as fp:
-            fp.write(",".join(tb_head))
+        
+        # deal with character
+        char_res_lis=tree.xpath("//tr[@data-param1]")
 
+        char_data=dict()
+        for char_tr in char_res_lis:
+            name=char_tr.xpath("./td[2]/a[1]/text()")[0]
+            char_data[name]=dict()
+            char_data[name]["job"]=char_tr.xpath("./@data-param1")[0]
+            char_data[name]["rank"]=char_tr.xpath("./@data-param2")[0].split(",")[0]
+            char_data[name]["sex"]=char_tr.xpath("./@data-param3")[0]
+            char_data[name]["affiliation"]=char_tr.xpath("./@data-param4")[0]
+            tag_string=char_tr.xpath("./@data-param5")[0]+", " \
+                        +char_data[name]["sex"]+", " \
+                        +char_data[name]["job"]+", " \
+                        +("资深干员" if char_data[name]["rank"]=="5" else "")+", " \
+                        +("高级资深干员" if char_data[name]["rank"]=="6" else "")+", "
+            taglist=[x.strip() for x in tag_string.split(",")]
+            taglist=[x for x in taglist if x!=""]
+            char_data[name]["tags"]=taglist
+            char_data[name]["obtain_method"]=list(map(lambda x: x.strip(), char_tr.xpath("./@data-param6")[0].split(",")))
+            
+            #deal head and data
+            td_lis=char_tr.xpath(".//td")
+            text_lis=["".join([xx.strip() for xx in x.xpath(".//text()")]) for x in td_lis]
+            all_lis=[x.strip() for x in text_lis]
+            all_dict=dict(zip(tb_head,all_lis))
+            char_data[name]["all"]=all_dict
+
+            # link
+            char_link_root="http://wiki.joyme.com/arknights/"
+            url=char_link_root+urllib.parse.quote(name)
+            char_data[name]["link"]=url
+
+            char_data[name]["type"]="friend"
+
+        with open(path_prefix+filename,"w",encoding='utf-8') as fp:
+            json.dump(char_data, fp)
+
+        return char_data
+
+    def fetch_enemy_from_akmooncell(self, filename="enemylist.json"):
         # get enemy data
         r=requests.get("http://ak.mooncell.wiki/w/敌人一览")
+        if r.status_code!=200: raise IOError("Cannot fetch enemy from akmooncell")
         tree=html.fromstring(r.text)
 
-        enemy_list=tree.xpath("//div[@class='smwdata']")
-        res="".join([unescape(html.tostring(enemy).decode('utf-8')) for enemy in enemy_list]) 
-        with open(path_prefix+"enemylist.html","w",encoding='utf-8') as fp:
-            fp.write(res)        
+        enemy_res_lis=tree.xpath("//div[@class='smwdata']")
+
+        enemy_data=dict()
+        enemy_link_root="http://ak.mooncell.wiki/w/"
+        for enemy_a in enemy_res_lis:
+            name=enemy_a.xpath("./@data-name")[0]
+            # print("===="+name)
+            enemy_data[name]=dict()
+            link=enemy_link_root+urllib.parse.quote(name)
+
+            enemy_data[name]["link"]=link
+            enemy_data[name]["type"]="enemy"
+        
+        with open(path_prefix+filename,"w",encoding='utf-8') as fp:
+            json.dump(enemy_data, fp)
+
+        return enemy_data
+
+    def fetch_enemy_from_wikijoyme(self, filename="enemylist.json"):
+        # get enemy data
+        r=requests.get("http://wiki.joyme.com/arknights/敌方图鉴")
+        if r.status_code!=200: raise IOError("Cannot fetch enemy from wikijoyme")
+        tree=html.fromstring(r.text)
+
+        enemy_res_lis=tree.xpath("//tr[@data-param1]")
+
+        enemy_data=dict()
+        enemy_link_root="http://ak.mooncell.wiki/w/"
+        for enemy_a in enemy_res_lis:
+            name=enemy_a.xpath("./td[2]/a[1]/text()")[0]
+            print("===="+name)
+            enemy_data[name]=dict()
+            link=enemy_link_root+urllib.parse.quote(name)
+
+            enemy_data[name]["link"]=link
+            enemy_data[name]["type"]="enemy"
+        
+        with open(path_prefix+filename,"w",encoding='utf-8') as fp:
+            json.dump(enemy_data, fp)
+
+        return enemy_data
                 
 class Tags_recom(object):
     def __init__(self):
         self.char_data=Character()
-        self.char_data.extract_all_char(text_file=path_prefix+"chardata.html")
+        self.char_data.extract_all_char()
         self.all_tags={
         '狙击', '术师', '特种', '重装', '辅助', '先锋', '医疗', '近卫',
         '减速', '输出', '生存', '群攻', '爆发', '召唤', '快速复活','费用回复',
@@ -672,9 +705,22 @@ material_recom=Material()
 
 if __name__=="__main__":
     filename="chardata.html"
+
     char_data=Character()
+    char_data.fetch_data()
+    print("fetch_done")
+    
     char_data.extract_all_char()
     print(char_data.char_data["艾雅法拉"])
+
+    res2=tags_recom.char_data.get_peo_info("艾斯戴尔")
+    print(res2)
+
+    print(char_data.enemy_data["大鲍勃"])
+    tags_recom.char_data.fetch_data()
+    tags_recom.char_data.extract_all_char()
+    res2=tags_recom.char_data.get_peo_info("法术大师A2")
+    print(res2)
     
     res=tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
     
@@ -687,17 +733,10 @@ if __name__=="__main__":
     # res=tags_recom.recom(images=[url])
     # print(res)
     
-    res2=tags_recom.char_data.get_peo_info("艾斯戴尔")
-    print(res2)
+
 
     res=material_recom.recom("聚酸酯块")
     print(res)
-
-    print(char_data.enemy_data["大鲍勃"])
-    # tags_recom.char_data.fetch_data()
-    tags_recom.char_data.extract_all_char()
-    res2=tags_recom.char_data.get_peo_info("法术大师A2")
-    print(res2)
 
     # for i in range(20):
     #     tags_recom.recom(["狙击干员","辅助干员", "削弱", "女性干员", "治疗"])
