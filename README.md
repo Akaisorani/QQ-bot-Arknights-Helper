@@ -8,7 +8,9 @@ It can help you choose which tag/tags to use in "公开招募"
 <td><img src="https://s2.ax1x.com/2019/06/14/VhOIVx.jpg" alt="VhOIVx.jpg" border="0" width = "250"/></td>
 <td><img src="https://s2.ax1x.com/2019/06/14/VhXlz4.jpg" alt="VhXlz4.jpg" border="0" width = "250"/></td>
 </tr></table>
+
 ## Usage
+
 1. tag list split by space
 >e.g. 近卫 男
 
@@ -55,12 +57,21 @@ It can help you choose which tag/tags to use in "公开招募"
 
 >update character data from wiki
 
+6. mati/材料 固源岩组
+
+   mati/材料\
+    (不加名称，查看表格)
+
 ## File Structure
 ```
 ├─akaisora-bot
    ├─akaisora
    │  └─plugins
    │      │  recom_tags.py
+   │      │  material.py
+   │      │  ocr_tool.py
+   │      │  fuzzname.py
+   │      │  record.py
    │      └─ chardata.html
    │  bot.py
    └─ config.py
@@ -69,10 +80,10 @@ It can help you choose which tag/tags to use in "公开招募"
 ## Install Requirement
 ```
 Python: Python>=3.6.1
-Packages: nonebot>=1.3.0
+Packages: nonebot>=1.3.0, baidu-aip>=2.2.13.0, fuzzywuzzy>=0.17.0, xpinyin>=0.5.6
 ```
 
-## Usage
+## Run
 ### 1. Run Bot
 `python bot.py`\
 or\
@@ -97,9 +108,20 @@ CoolQ has no linux version, but we can run it in docker.
 4. Configure CoolQ HTTP API follow this [instruction](https://none.rclab.tk/guide/getting-started.html#%E9%85%8D%E7%BD%AE-coolq-http-api-%E6%8F%92%E4%BB%B6), note that you should use post_url as 172.17.0.1 instead of 127.0.0.1 because of using Docker.
 5. Run Bot
 
+### 3. Additional Instruction
+The **ocr** part (extract tags from image) uses [baidu-ocr-api(free)](https://ai.baidu.com/docs#/OCR-API/e1bd77f3).\
+You need to open an account and fill in `APP_ID`, `API_KEY`, `SECRET_KEY` in `template_apikeys.py` file.\
+Finally, rename `template_apikeys.py` to `apikeys.py` to make it work.
+
 ## Acknowledgements
 Thanks for nonebot's very detailed instruction.\
 https://none.rclab.tk/
 
 Thanks for character data from MRFZ-wiki.\
 http://wiki.joyme.com/arknights/%E5%B9%B2%E5%91%98%E6%95%B0%E6%8D%AE%E8%A1%A8
+
+Thanks for enemy data from ak.mooncell\
+http://ak.mooncell.wiki/w/%E9%A6%96%E9%A1%B5
+
+Thanks for baidu open api\
+https://ai.baidu.com/
