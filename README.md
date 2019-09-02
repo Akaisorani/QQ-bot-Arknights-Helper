@@ -72,7 +72,7 @@ It can help you choose which tag/tags to use in "公开招募"
    │      │  ocr_tool.py
    │      │  fuzzname.py
    │      │  record.py
-   │      └─ chardata.html
+   │      └─ chardata.json
    │  bot.py
    └─ config.py
 ```
