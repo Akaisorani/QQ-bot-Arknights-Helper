@@ -135,10 +135,12 @@ async def _(session: CommandSession):
 @on_natural_language(only_to_me=False, keywords=None)
 async def _(session: NLPSession):
 
-    # stripped_msg = session.msg_text.strip()
+    stripped_msg = session.msg_text.strip()
     msg=session.msg
 
     # 返回意图命令，前两个参数必填，分别表示置信度和意图命令名
+    if stripped_msg=="search":
+        return IntentCommand(95.0, 'search', current_arg=msg or '')
     return IntentCommand(90.0, 'tagrc', current_arg=msg or '')
     
 @tell.args_parser

@@ -9,6 +9,8 @@ cookies.txt
 record_material.txt
 record_peo.txt
 record_tags.txt
+.DS_Store
+imagesearch.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
